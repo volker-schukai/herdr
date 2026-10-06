@@ -1061,6 +1061,12 @@
           ]
         },
         {
+          "key": "ui.sidebar.agents.enabled",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show the Agents section in the sidebar. Set to false to give the full sidebar height to Spaces."
+        },
+        {
           "key": "ui.sidebar.agents.row_gap",
           "type": "integer",
           "default": "0",

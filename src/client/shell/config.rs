@@ -484,6 +484,7 @@ mod tests {
         next.ui.agent_panel_sort = crate::config::AgentPanelSortConfig::Priority;
         next.ui.status_indicators = crate::config::StatusIndicatorStyle::Symbols;
         next.ui.sidebar.agents = toml::from_str("rows = [[{ token = 'machine', rules = [{ equals = 'Local', bold = true }] }]]\nrow_gap = 2").unwrap();
+        next.ui.sidebar.agents.enabled = false;
         next.keys.prefix = crate::config::BindingConfig::one("ctrl+a");
 
         let diagnostics = shell.apply_live_config(&next, &[], &[]);
@@ -500,6 +501,7 @@ mod tests {
             crate::config::StatusIndicatorStyle::Symbols
         );
         assert_eq!(shell.agents.row_gap, 2);
+        assert!(!shell.agents.enabled);
         assert_eq!(
             shell.agents.rows[0][0]
                 .style_for_value("Local")

@@ -422,6 +422,8 @@ where
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(default)]
 pub struct AgentsSidebarConfig {
+    /// Show the Agents section in the sidebar. Default: true.
+    pub enabled: bool,
     #[serde(deserialize_with = "deserialize_sidebar_rows")]
     pub rows: AgentSidebarRows,
     #[serde(default, deserialize_with = "deserialize_rows_by_agent")]
@@ -440,6 +442,7 @@ impl AgentsSidebarConfig {
 impl Default for AgentsSidebarConfig {
     fn default() -> Self {
         Self {
+            enabled: true,
             rows: vec![
                 vec![
                     AgentSidebarToken::StateIcon,
@@ -489,6 +492,7 @@ mod tests {
     #[test]
     fn defaults_match_the_compact_agent_and_existing_space_layouts() {
         let config = SidebarConfig::default();
+        assert!(config.agents.enabled);
         assert_eq!(
             config.agents.rows,
             vec![
@@ -511,6 +515,24 @@ mod tests {
             ]
         );
         assert_eq!(config.spaces.row_gap, 0);
+    }
+
+    #[test]
+    fn agent_panel_defaults_on_and_parses_off() {
+        let config: crate::config::Config = toml::from_str(
+            r#"
+[ui.sidebar.agents]
+enabled = false
+"#,
+        )
+        .expect("disabled agent panel config");
+
+        assert!(!config.ui.sidebar.agents.enabled);
+        assert!(
+            !toml::from_str::<AgentsSidebarConfig>("enabled = false")
+                .expect("standalone disabled agent panel config")
+                .enabled
+        );
     }
 
     #[test]

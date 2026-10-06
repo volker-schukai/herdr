@@ -295,6 +295,29 @@ fn client_owned_sidebar_dividers_resize_live() {
 }
 
 #[test]
+fn disabled_agent_panel_gives_spaces_the_full_sidebar() {
+    let mut config = Config::default();
+    config.ui.sidebar.agents.enabled = false;
+    let mut state = ClientShellState::new(ClientShellConfig::from_config(&config));
+    state.set_snapshot(Box::new(snapshot()));
+    state.set_pane_surface(surface());
+
+    let frame = state.compose(106, 30).expect("spaces-only sidebar");
+    let text = frame_rows(&frame).join("\n");
+
+    assert!(text.contains(" spaces"));
+    assert!(!text.contains(" agents"));
+    assert_eq!(state.hits.sidebar_section_divider, Rect::default());
+    assert_eq!(state.hits.agent_body, Rect::default());
+    assert_eq!(state.hits.agent_sort_toggle, Rect::default());
+    assert!(state.hits.agents.is_empty());
+    assert_eq!(
+        state.hits.workspace_body.bottom(),
+        state.hits.sidebar_divider.bottom().saturating_sub(1)
+    );
+}
+
+#[test]
 fn context_menus_capture_stable_targets_and_route_actions() {
     let mut state = ClientShellState::new(ClientShellConfig::from_config(&Config::default()));
     state.set_snapshot(Box::new(snapshot()));

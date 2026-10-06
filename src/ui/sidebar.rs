@@ -47,10 +47,17 @@ fn sidebar_section_heights(total_height: u16, split_ratio: f32) -> (u16, u16) {
     )
 }
 
-pub(crate) fn expanded_sidebar_sections(area: Rect, split_ratio: f32) -> (Rect, Rect) {
+pub(crate) fn expanded_sidebar_sections(
+    area: Rect,
+    split_ratio: f32,
+    agents_enabled: bool,
+) -> (Rect, Rect) {
     let content = Rect::new(area.x, area.y, area.width.saturating_sub(1), area.height);
     if content.is_empty() {
         return (Rect::default(), Rect::default());
+    }
+    if !agents_enabled {
+        return (content, Rect::default());
     }
 
     let (workspace_height, detail_height) = sidebar_section_heights(content.height, split_ratio);
@@ -65,9 +72,13 @@ pub(crate) fn expanded_sidebar_sections(area: Rect, split_ratio: f32) -> (Rect, 
     )
 }
 
-pub(crate) fn sidebar_section_divider_rect(area: Rect, split_ratio: f32) -> Rect {
+pub(crate) fn sidebar_section_divider_rect(
+    area: Rect,
+    split_ratio: f32,
+    agents_enabled: bool,
+) -> Rect {
     let content = Rect::new(area.x, area.y, area.width.saturating_sub(1), area.height);
-    if content.width == 0 || content.height < 6 {
+    if !agents_enabled || content.width == 0 || content.height < 6 {
         return Rect::default();
     }
 
@@ -293,4 +304,37 @@ fn apply_token_style(mut style: Style, patch: crate::config::SidebarTokenStyle) 
         };
     }
     style
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn disabled_agent_section_gives_spaces_the_full_sidebar() {
+        let area = Rect::new(2, 3, 20, 30);
+
+        let (spaces, agents) = expanded_sidebar_sections(area, 0.5, false);
+
+        assert_eq!(spaces, Rect::new(2, 3, 19, 30));
+        assert_eq!(agents, Rect::default());
+        assert_eq!(
+            sidebar_section_divider_rect(area, 0.5, false),
+            Rect::default()
+        );
+    }
+
+    #[test]
+    fn enabled_agent_section_preserves_the_split_layout() {
+        let area = Rect::new(2, 3, 20, 30);
+
+        let (spaces, agents) = expanded_sidebar_sections(area, 0.5, true);
+
+        assert_eq!(spaces, Rect::new(2, 3, 19, 15));
+        assert_eq!(agents, Rect::new(2, 18, 19, 15));
+        assert_eq!(
+            sidebar_section_divider_rect(area, 0.5, true),
+            Rect::new(2, 18, 19, 1)
+        );
+    }
 }
