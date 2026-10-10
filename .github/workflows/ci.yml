@@ -38,6 +38,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Fetch pushed range start
+        if: github.event_name == 'push'
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$BEFORE"
+          fi
+
       - name: Validate commit subjects
         if: github.event_name == 'push'
         run: python3 scripts/conventional_commits.py --range "${{ github.event.before }}..${{ github.event.after }}"
